@@ -1,0 +1,23 @@
+# Arquivos objeto
+*.o
+
+# Arquivos executáveis
+*.exe
+*.out
+
+# Arquivos gerados pelo compilador
+*.dSYM/
+*.su
+
+# Arquivos de dependências
+*.d
+
+# Arquivos de log
+*.log
+
+# Arquivos temporários
+*.tmp
+
+# Diretórios gerados
+build/
+bin/

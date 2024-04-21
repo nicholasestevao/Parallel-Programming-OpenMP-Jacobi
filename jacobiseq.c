@@ -1,5 +1,5 @@
-// to compile: gcc-13 jacobi.c -o  jacobi -fopenmp
-// to execute: ./jacobi <ordem_matriz> <num_threads> <seed> <option_debug>
+// to compile: make seq || make all
+// to execute: ./jacobiseq <ordem_matriz> <seed> <option_debug>
 //
 
 #include <stdlib.h>
@@ -12,18 +12,15 @@
 int main(int argc,char **argv){
     
     // Argumentos de entrada
-    if ( argc  != 5)
+    if ( argc  != 4)
 	{
 	    printf("Wrong arguments. Please use main <ordem_matriz> <num_threads> <seed> <option_debug>\n");
 	    exit(0);
 	}
 
-    int N, num_threads, debug;
-    float seed;
-    N = atoi(argv[1]);
-    num_threads = atoi(argv[2]);
-    seed = *argv[3];
-    debug = atoi(argv[4]);
+    int N = atoi(argv[1]);
+    float seed = *argv[2];
+    int debug = atoi(argv[3]);
 
     // Alocacao de memoria para matriz A e vetor B
     float ** matrix = (float **) malloc(sizeof(float *) * N);
