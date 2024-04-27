@@ -7,7 +7,7 @@
 #include <omp.h>
 #include <math.h>
 
-#define MAX_ITERACOES 200
+#define MAX_ITERACOES 300
 
 int main(int argc,char **argv){
 
@@ -49,6 +49,7 @@ int main(int argc,char **argv){
 
         // Verifica se a matriz eh diagonalmente dominante
         if(fabs(matrix[i*N + i]) < soma_linha - fabs(matrix[i*N + i])){ // Diagonal deve ser maior que a soma dos outros elementos da linha
+            printf("Corrigindo diagonal\n");
             matrix[i*N +i] = soma_linha; // corrige a diagonal para ser maior que a soma dos outros elementos da linha
         }
         // Imprime a linha da matriz A --- DEBUG
@@ -69,11 +70,11 @@ int main(int argc,char **argv){
         // Le a matriz A e o vetor B
         for(int i = 0; i< N; i++){
             for(int j = 0; j< N; j++){
-                scanf("%f", &(matrix[i*N + j]));
+                //scanf("%f", &(matrix[i*N + j]));
             }
         }
         for(int i = 0; i< N; i++){
-            scanf("%f", &(vet_b[i]));
+            //scanf("%f", &(vet_b[i]));
         }
 
         // Imprime a matriz A e o vetor B na tela --- DEBUG
@@ -142,6 +143,12 @@ int main(int argc,char **argv){
         }
 
         // Imprime o vetor X e o novo vetor X --- DEBUG
+        if(debug  == 4){
+            printf("\nNew x:");
+            for(int i = 0; i< N; i++){
+                printf("%f ", vet_new_x[i]);
+            }
+        }
         if(debug == 1){
             printf("\nOld x:");
             for(int i = 0; i< N; i++){
@@ -172,7 +179,7 @@ int main(int argc,char **argv){
         }
 
         error = max_diff / max_new_x;
-        if(debug == 1){
+        if(debug == 3){
             printf(" Max new X: %f", max_new_x); // --- DEBUG
             printf("\nError: %f\n", error);            
         }
@@ -198,7 +205,7 @@ int main(int argc,char **argv){
     if( 1){
         printf("\nVetor solucao: ");
         for(int i = 0; i< N; i++){
-            printf("%.3f ", vet_x[i]);
+            //printf("%.3f ", vet_x[i]);
         }
     }
 
@@ -215,14 +222,14 @@ int main(int argc,char **argv){
             }else{
                 matrix[linha*N + i] = vet_diag[linha];
             }
-            //if(debug == 1)
+            if(debug == 1)
                 printf("%.2fx_%d +\t", matrix[linha*N + i], i);
             // Avalia equacao com o valor do vetor X
             result += matrix[linha*N +i] * vet_x[i];
         }
-        //if(debug == 1)
+        if(debug == 1)
         printf("= %.2f - Error: %f\n", vet_b[linha]*vet_diag[linha], error);
-        printf("Resultado da atribuicao na linha %d (%d iteracoes): %.12f\n", linha, cont, result);
+        printf("Resultado da atribuicao na linha %d (%d iteracoes): %.6f\n", linha, cont, result);
     }
     
 
