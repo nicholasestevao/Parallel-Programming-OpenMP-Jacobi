@@ -2,6 +2,8 @@
 // to execute: ./jacobiseq <ordem_matriz> <seed> <option_debug>
 //
 
+// Antigo: Nesse codig oa matriz nao esta linearizada
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <omp.h>
@@ -25,8 +27,11 @@ int main(int argc,char **argv){
     int debug = atoi(argv[3]);
 
     // Alocacao de memoria para matriz A e vetor B
-    float * matrix = (float *) malloc(sizeof(float *) * N * N); // matriz linearizada
+    float ** matrix = (float **) malloc(sizeof(float *) * N);
     float * vet_b = (float *) malloc(sizeof(float) * N);
+    for(int i = 0; i< N; i++){
+        matrix[i] = (float *) malloc(sizeof(float) * N);
+    }
 
     // Vetor que armazena a diagonal original da matriz A para posterior substituicao na equacao
     float * vet_diag = (float *) malloc(sizeof(float) * N);
@@ -38,23 +43,23 @@ int main(int argc,char **argv){
     for(int i = 0; i< N; i++){
         // Gera umal linha da matriz A
         for(int j = 0; j< N; j++){
-            matrix[i*N + j] = rand()%100;
+            matrix[i][j] = rand()%100;
         }
 
         // Soma a linha atual da matriz A
         float soma_linha = 0;
         for(int j = 0; j< N; j++){
-            soma_linha += fabs(matrix[i*N + j]);
+            soma_linha += fabs(matrix[i][j]);
         }
 
         // Verifica se a matriz eh diagonalmente dominante
-        if(fabs(matrix[i*N + i]) < soma_linha - fabs(matrix[i*N + i])){ // Diagonal deve ser maior que a soma dos outros elementos da linha
-            matrix[i*N +i] = soma_linha; // corrige a diagonal para ser maior que a soma dos outros elementos da linha
+        if(fabs(matrix[i][i]) < soma_linha - fabs(matrix[i][i])){ // Diagonal deve ser maior que a soma dos outros elementos da linha
+            matrix[i][i] = soma_linha; // corrige a diagonal para ser maior que a soma dos outros elementos da linha
         }
         // Imprime a linha da matriz A --- DEBUG
         if(debug == 1){
             for(int j = 0; j< N; j++){
-                printf("%.1f\t", matrix[i*N + j]);
+                printf("%.1f\t", matrix[i][j]);
             }
             printf("\n");
         }
@@ -69,17 +74,17 @@ int main(int argc,char **argv){
         // Le a matriz A e o vetor B
         for(int i = 0; i< N; i++){
             for(int j = 0; j< N; j++){
-                scanf("%f", &(matrix[i*N + j]));
+                scanf("%f", &(matrix[i][j]));
             }
         }
         for(int i = 0; i< N; i++){
             scanf("%f", &(vet_b[i]));
         }
-
+    
         // Imprime a matriz A e o vetor B na tela --- DEBUG
         for(int i = 0; i< N; i++){
             for(int j = 0; j< N; j++){
-                printf("%.1f\t", matrix[i*N + j]);
+                printf("%.1f\t", matrix[i][j]);
             }
             printf("=\t%.1f", vet_b[i]);
             printf("\n");
@@ -93,25 +98,25 @@ int main(int argc,char **argv){
     for(int i = 0; i< N; i++){
         for(int j = 0; j< N; j++){
             if(i != j){
-                matrix[i*N + j] = matrix[i*N + j] / matrix[i*N + i]; // normaliza cada linha em relacao ao elemento da diagonal
+                matrix[i][j] = matrix[i][j] / matrix[i][i]; // normaliza cada linha em relacao ao elemento da diagonal
             }
         }
-        vet_b[i] = vet_b[i] / matrix[i*N +i];
-        vet_diag[i] = matrix[i*N + i];
-        matrix[i*N + i] = 0;   // zera a diagonal da matriz A
+        vet_b[i] = vet_b[i] / matrix[i][i];
+        vet_diag[i] = matrix[i][i];
+        matrix[i][i] = 0;   // zera a diagonal da matriz A
     }
 
     // Imprime a matriz A e o vetor B normalizados --- DEBUG
     if(debug == 1){
         for(int i = 0; i< N; i++){
             for(int j = 0; j< N; j++){
-                printf("%f ", matrix[i*N + j]);
+                printf("%f ", matrix[i][j]);
             }
             printf("= %f", vet_b[i]);
             printf("\n");
         }
     }
-
+    
     // Alocacao de memoria para o vetor solucao X, para o novo vetor X
     float * vet_x = (float *) malloc(sizeof(float) * N);
     float * vet_new_x = (float *) malloc(sizeof(float) * N);
@@ -137,7 +142,7 @@ int main(int argc,char **argv){
         // Calculo do novo vetor X  -> x[i]k+1 = B*[i] - (A*[i j].x[j]k), para i <> j e 0 >= j < n
         for(int i = 0; i< N; i++){
             for(int j = 0; j< N; j++){
-                vet_new_x[i] -= matrix[i*N + j] * vet_x[j];
+                vet_new_x[i] -= matrix[i][j] * vet_x[j];
             }
         }
 
@@ -174,7 +179,7 @@ int main(int argc,char **argv){
         error = max_diff / max_new_x;
         if(debug == 1){
             printf(" Max new X: %f", max_new_x); // --- DEBUG
-            printf("\nError: %f\n", error);            
+            printf("\nError: %f\n", error);
         }
 
         if(error < 0.001){ // sai do loop while quando satisfaz o erro minimo
@@ -190,17 +195,18 @@ int main(int argc,char **argv){
         cont++; // contagem de iteracoes --- DEBUG
     }
 
-    // Fim do calculo do tempo de execucao
+    // Calculo do tempo de execucao
     wtime = omp_get_wtime() - wtime;
     printf("Elapsed wall clock time = %f  \n", wtime);
 
     // Imprime o vetor solucao X
-    if( 1){
-        printf("\nVetor solucao: ");
+    if(debug == 1){
+         printf("\nVetor solucao: ");
         for(int i = 0; i< N; i++){
             printf("%.3f ", vet_x[i]);
         }
     }
+   
 
     printf("\nDigite o indice da equacao que deseja substituir: ");
     int linha;
@@ -211,22 +217,25 @@ int main(int argc,char **argv){
         for(int i = 0; i< N; i++){
             // Reconstroi a linha original da matriz A (sem normalizacao)
             if(i != linha){
-                matrix[linha*N + i] *= vet_diag[linha];
+                matrix[linha][i] *= vet_diag[linha];
             }else{
-                matrix[linha*N + i] = vet_diag[linha];
+                matrix[linha][i] = vet_diag[linha];
             }
-            //if(debug == 1)
-                printf("%.2fx_%d +\t", matrix[linha*N + i], i);
+            if(debug == 1)
+            printf("%.2fx_%d +\t", matrix[linha][i], i);
             // Avalia equacao com o valor do vetor X
-            result += matrix[linha*N +i] * vet_x[i];
+            result += matrix[linha][i] * vet_x[i];
         }
-        //if(debug == 1)
-        printf("= %.2f - Error: %f\n", vet_b[linha]*vet_diag[linha], error);
-        printf("Resultado da atribuicao na linha %d (%d iteracoes): %.12f\n", linha, cont, result);
+        if(debug == 1)
+        printf("= %.2f\n", vet_b[linha]*vet_diag[linha]);
+        printf("Resultado da atribuicao na linha %d: %.2f\n", linha, result);
     }
     
 
     // Desalocacao de Memoria
+    for(int i = 0; i< N; i++){
+        free(matrix[i]);
+    }
     free(matrix);
     free(vet_b);
     free(vet_diag);

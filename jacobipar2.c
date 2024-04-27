@@ -90,14 +90,18 @@ int main(int argc,char **argv){
     wtime = omp_get_wtime();
 
     // Normaliza a matriz A e o vetor B e armazena a diagonal original da matriz A
+    #pragma omp parallel for num_threads(T) shared(matrix, vet_b, vet_diag, N)
     for(int i = 0; i< N; i++){
-        for(int j = 0; j< N; j++){
-            if(i != j){
-                matrix[i*N + j] = matrix[i*N + j] / matrix[i*N + i]; // normaliza cada linha em relacao ao elemento da diagonal
-            }
-        }
         vet_b[i] = vet_b[i] / matrix[i*N +i];
         vet_diag[i] = matrix[i*N + i];
+        #pragma omp parallel for num_threads(T) shared(matrix, vet_b, vet_diag, N)
+        for(int j = 0; j< i; j++){
+            matrix[i*N + j] = matrix[i*N + j] / matrix[i*N + i]; // normaliza cada linha em relacao ao elemento da diagonal
+        }
+        #pragma omp parallel for num_threads(T) shared(matrix, vet_b, vet_diag, N)
+        for(int j = i+1; j< N; j++){
+            matrix[i*N + j] = matrix[i*N + j] / matrix[i*N + i]; // normaliza cada linha em relacao ao elemento da diagonal
+        }
         matrix[i*N + i] = 0;   // zera a diagonal da matriz A
     }
 
@@ -116,13 +120,11 @@ int main(int argc,char **argv){
     float * vet_x = (float *) malloc(sizeof(float) * N);
     float * vet_new_x = (float *) malloc(sizeof(float) * N);
 
-    // Alocacao de memoria para as variaveis de calculo do erro (criterio de parada)
-    float * diff = (float *) malloc(sizeof(float) * N);
-    float max_new_x = fabs(vet_new_x[0]);
-    float max_diff = 0;
-    float error = 1; // erro inicial para entrar no loop while
+    float error = 1; // erro inicial
+    int flag_cancel = 0; // flag para cancelar o loop 
 
     // Inicializacao dos vetores X e novo X
+    #pragma omp parallel for num_threads(T) shared(vet_x, vet_b, vet_new_x, N)
     for(int i = 0; i< N; i++){
         vet_x[i] = vet_b[i]; // chute inicial é o vetor B
         vet_new_x[i] = vet_x[i]; // novo vetor X sempre comeca igual o vetor B pois x[i]k+1 = B*[i] - (A*[i j].x[j]k), para i <> j e 0 >= j < n
@@ -153,14 +155,15 @@ int main(int argc,char **argv){
             }
             printf("\nDiff: ");
             for(int i = 0; i< N; i++){
-                printf("%f ", diff[i]);
+               // printf("%f ", diff[i]);
             }
             printf("\n");
         }
 
         // Calculo do erro (criterio de parada)
-        max_diff = 0;
-        max_new_x = fabs(vet_new_x[0]);
+        float * diff = (float *) malloc(sizeof(float) * N);
+        float max_diff = 0;
+        float max_new_x = fabs(vet_new_x[0]);
         for(int i = 0; i< N; i++){
             diff[i] = fabs(vet_new_x[i] - vet_x[i]); // calcula diferenca entre o novo vetor X e o vetor X
             if(diff[i] > max_diff){
@@ -188,6 +191,7 @@ int main(int argc,char **argv){
         }
 
         cont++; // contagem de iteracoes --- DEBUG
+        free(diff);
     }
 
     // Fim do calculo do tempo de execucao
@@ -222,7 +226,7 @@ int main(int argc,char **argv){
         }
         //if(debug == 1)
         printf("= %.2f - Error: %f\n", vet_b[linha]*vet_diag[linha], error);
-        printf("Resultado da atribuicao na linha %d (%d iteracoes): %.12f\n", linha, cont, result);
+        printf("Resultado da atribuicao na linha %d: %.12f\n", linha, result);
     }
     
 
@@ -232,7 +236,6 @@ int main(int argc,char **argv){
     free(vet_diag);
     free(vet_x);
     free(vet_new_x);
-    free(diff);
     
     return 0;
 }
