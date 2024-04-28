@@ -8,6 +8,7 @@
 #include <math.h>
 
 #define MAX_ITERACOES 300
+#define MAX_MATRIX_VALUE 100
 
 int main(int argc,char **argv){
 
@@ -38,7 +39,7 @@ int main(int argc,char **argv){
     for(int i = 0; i< N; i++){
         // Gera umal linha da matriz A
         for(int j = 0; j< N; j++){
-            matrix[i*N + j] = rand()%100;
+            matrix[i*N + j] = rand()%MAX_MATRIX_VALUE;
         }
 
         // Soma a linha atual da matriz A
@@ -49,7 +50,7 @@ int main(int argc,char **argv){
 
         // Verifica se a matriz eh diagonalmente dominante
         if(fabs(matrix[i*N + i]) < soma_linha - fabs(matrix[i*N + i])){ // Diagonal deve ser maior que a soma dos outros elementos da linha
-            printf("Corrigindo diagonal\n");
+            //printf("Corrigindo diagonal\n");
             matrix[i*N +i] = soma_linha; // corrige a diagonal para ser maior que a soma dos outros elementos da linha
         }
         // Imprime a linha da matriz A --- DEBUG
@@ -131,12 +132,15 @@ int main(int argc,char **argv){
 
     int cont = 0; // contador de iteracoes --- DEBUG
 
-    while(error > 0.001 && cont < MAX_ITERACOES){ // loop para realizar iteracoes ate satisfazer o criterio de parada
+    while(error > 0.001 /*&& cont < MAX_ITERACOES*/){ // loop para realizar iteracoes ate satisfazer o criterio de parada
         // Inicio da iteracao
         //printf("\nIteracao %d\n", cont);
 
         // Calculo do novo vetor X  -> x[i]k+1 = B*[i] - (A*[i j].x[j]k), para i <> j e 0 >= j < n
         for(int i = 0; i< N; i++){
+            // Atualiza o vetor X
+            vet_x[i] = vet_new_x[i]; // vetor X recebe o novo vetor X (proximo chute)
+            vet_new_x[i] = vet_b[i]; // novo vetor X recebe o vetor B
             for(int j = 0; j< N; j++){
                 vet_new_x[i] -= matrix[i*N + j] * vet_x[j];
             }
@@ -179,19 +183,13 @@ int main(int argc,char **argv){
         }
 
         error = max_diff / max_new_x;
-        if(debug == 3){
-            printf(" Max new X: %f", max_new_x); // --- DEBUG
+        if(debug == 1 || debug == 3 ){
+            //printf(" Max new X: %f", max_new_x); // --- DEBUG
             printf("\nError: %f\n", error);            
         }
 
         if(error < 0.001){ // sai do loop while quando satisfaz o erro minimo
             break;
-        }
-
-        // Atualiza o vetor X para a proxima iteracao
-        for(int i = 0; i< N; i++){
-            vet_x[i] = vet_new_x[i]; // vetor X recebe o novo vetor X (proximo chute)
-            vet_new_x[i] = vet_b[i]; // vetor novo X sempre comeca com B
         }
 
         cont++; // contagem de iteracoes --- DEBUG
@@ -202,8 +200,8 @@ int main(int argc,char **argv){
     printf("Elapsed wall clock time = %f  \n", wtime);
 
     // Imprime o vetor solucao X
-    if( 1){
-        printf("\nVetor solucao: ");
+    if(debug == 1){
+        //printf("\nVetor solucao: ");
         for(int i = 0; i< N; i++){
             //printf("%.3f ", vet_x[i]);
         }
@@ -228,8 +226,9 @@ int main(int argc,char **argv){
             result += matrix[linha*N +i] * vet_x[i];
         }
         if(debug == 1)
-        printf("= %.2f - Error: %f\n", vet_b[linha]*vet_diag[linha], error);
+            printf("= %.2f - Error: %f\n", vet_b[linha]*vet_diag[linha], error);
         printf("Resultado da atribuicao na linha %d (%d iteracoes): %.6f\n", linha, cont, result);
+        printf("Erro: %.6f\n", error);
     }
     
 
