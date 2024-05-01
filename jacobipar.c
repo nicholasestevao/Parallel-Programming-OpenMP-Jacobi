@@ -9,6 +9,7 @@
 
 #define MAX_ITERACOES 300
 #define MAX_MATRIX_VALUE 100
+# define PRECISAO_JACOBI 0.001
 
 //#pragma omp declare simd linear(matrix:1) linear(vet_x:1) linear(vet_new_x:1)
 void calculate_new_x (float * matrix, float * vet_x, float * vet_new_x, float * vet_b, int N, int T)
@@ -91,7 +92,7 @@ int main(int argc,char **argv){
         // Verifica se a matriz eh diagonalmente dominante
         if(fabs(matrix[i*N + i]) < soma_linha - fabs(matrix[i*N + i])){ // Diagonal deve ser maior que a soma dos outros elementos da linha
             //printf("Corrigindo diagonal\n");
-            matrix[i*N +i] = soma_linha; // corrige a diagonal para ser maior que a soma dos outros elementos da linha
+            matrix[i*N +i] = soma_linha + 1; // corrige a diagonal para ser maior que a soma dos outros elementos da linha
         }
         // Imprime a linha da matriz A --- DEBUG
         if(debug == 1){
@@ -176,9 +177,9 @@ int main(int argc,char **argv){
     }
 
     int cont = 0; // contador de iteracoes --- DEBUG
-    //#pragma omp parallel for num_threads(T) shared(matrix, vet_b, vet_x, vet_new_x, flag_cancel) firstprivate(error, N, debug)
+    //#pragma omp parallel num_threads(T) shared(matrix, vet_b, vet_x, vet_new_x, flag_cancel) firstprivate(error, N, debug)
     //for(cont = 0; cont < MAX_ITERACOES; cont++){ // loop para realizar iteracoes ate satisfazer o criterio de parada
-    while(error > 0.001 /*&& cont < MAX_ITERACOES*/){
+    while(error > PRECISAO_JACOBI /*&& cont < MAX_ITERACOES*/){
         
         // Calculo do novo vetor X  -> x[i]k+1 = B*[i] - (A*[i j].x[j]k), para i <> j e 0 >= j < n
         calculate_new_x(matrix, vet_x, vet_new_x, vet_b, N, T);
@@ -211,7 +212,7 @@ int main(int argc,char **argv){
             printf("\nError: %f\n", error);            
         }
 
-        if(error < 0.001){ // sai do loop while quando satisfaz o erro minimo
+        if(error < PRECISAO_JACOBI){ // sai do loop while quando satisfaz o erro minimo
             break;
         }
 
@@ -252,6 +253,7 @@ int main(int argc,char **argv){
         if(debug == 1)
             printf("= %.2f - Error: %f\n", vet_b[linha]*vet_diag[linha], error);
         printf("Resultado da atribuicao na linha %d (%d iteracoes): %.6f\n", linha, cont, result);
+        printf("Valor esperado: %f\n", vet_b[linha]*vet_diag[linha]);
         printf("Erro: %.6f\n", error);
     }
     

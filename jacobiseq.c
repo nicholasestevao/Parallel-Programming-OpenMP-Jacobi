@@ -51,7 +51,7 @@ int main(int argc,char **argv){
         // Verifica se a matriz eh diagonalmente dominante
         if(fabs(matrix[i*N + i]) < soma_linha - fabs(matrix[i*N + i])){ // Diagonal deve ser maior que a soma dos outros elementos da linha
             //printf("Corrigindo diagonal\n");
-            matrix[i*N +i] = soma_linha; // corrige a diagonal para ser maior que a soma dos outros elementos da linha
+            matrix[i*N +i] = soma_linha + 1; // corrige a diagonal para ser maior que a soma dos outros elementos da linha
         }
         // Imprime a linha da matriz A --- DEBUG
         if(debug == 1){
@@ -230,6 +230,7 @@ int main(int argc,char **argv){
         if(debug == 1)
             printf("= %.2f - Error: %f\n", vet_b[linha]*vet_diag[linha], error);
         printf("Resultado da atribuicao na linha %d (%d iteracoes): %.6f\n", linha, cont, result);
+        printf("Valor esperado: %f\n", vet_b[linha]*vet_diag[linha]);
         printf("Erro: %.6f\n", error);
     }
     
