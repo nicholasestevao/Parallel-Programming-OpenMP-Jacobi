@@ -9,33 +9,37 @@
 
 #define MAX_ITERACOES 300
 #define MAX_MATRIX_VALUE 100
-# define PRECISAO_JACOBI 0.001
+#define PRECISAO_JACOBI 0.0001
 
 //#pragma omp declare simd linear(matrix:1) linear(vet_x:1) linear(vet_new_x:1)
-void calculate_new_x (float * matrix, float * vet_x, float * vet_new_x, float * vet_b, int N, int T)
+void calculate_new_x (double * matrix, double * vet_x, double * vet_new_x, double * vet_b, int N, int T)
 {
+    int i, j = 0;
     // Atualiza o vetor X para a proxima iteracao
-    #pragma omp parallel for simd num_threads(T) shared(vet_new_x, matrix, vet_x, vet_b, N)
-    for(int i = 0; i< N; i++){
+    #pragma omp parallel for simd num_threads(T) shared(vet_new_x, matrix, vet_x, vet_b, N) private(i)
+    for(i = 0; i< N; i++){
         vet_x[i] = vet_new_x[i]; // vetor X recebe o novo vetor X (proximo chute)
         vet_new_x[i] = vet_b[i]; // vetor novo X sempre comeca com B
     }
-    #pragma omp parallel for simd num_threads(T) shared(vet_new_x, matrix, vet_x, vet_b, N) collapse(2)
-    for(int i = 0; i< N; i++){
-        for(int j = 0; j< N; j++){
+
+    // #pragma omp barrier
+    #pragma omp parallel for collapse(2) num_threads(T) private(i, j) reduction(+:vet_new_x[:N])
+    for(i = 0; i< N; i++){
+        for(j = 0; j< N; j++){
             vet_new_x[i] -= matrix[i*N + j] * vet_x[j];
         }
     }
 }
 
-void calculate_error(float * vet_x, float * vet_new_x, float * diff, int N, int debug, float * error, int T)
+void calculate_error(double * vet_x, double * vet_new_x, double * diff, int N, int debug, double * error, int T)
 {
-    float max_diff = 0;
-    float max_new_x = fabs(vet_new_x[0]);
-    #pragma omp parallel for simd num_threads(T) firstprivate(diff, vet_x, vet_new_x, N) reduction(max:max_diff, max_new_x)
-    for(int i = 0; i< N; i++){
+    int i = 0;
+    double max_diff = 0;
+    double max_new_x = fabs(vet_new_x[0]);
+    #pragma omp parallel for simd num_threads(T) firstprivate(diff, vet_x, vet_new_x, N) private(i) reduction(max:max_diff, max_new_x)
+    for(i = 0; i< N; i++){
         diff[i] = fabs(vet_new_x[i] - vet_x[i]); // calcula diferenca entre o novo vetor X e o vetor X
-       if(diff[i] > max_diff){
+        if(diff[i] > max_diff){
             max_diff = diff[i]; // calcula o maior valor da diferenca
         }
         if(fabs(vet_new_x[i]) > max_new_x){
@@ -67,24 +71,24 @@ int main(int argc,char **argv){
     int debug = atoi(argv[4]);
 
     // Alocacao de memoria para matriz A e vetor B
-    float * matrix = (float *) malloc(sizeof(float *) * N * N); // matriz linearizada
-    float * vet_b = (float *) malloc(sizeof(float) * N);
+    double * matrix = (double *) malloc(sizeof(double *) * N * N); // matriz linearizada
+    double * vet_b = (double *) malloc(sizeof(double) * N);
 
     // Vetor que armazena a diagonal original da matriz A para posterior substituicao na equacao
-    float * vet_diag = (float *) malloc(sizeof(float) * N);
+    double * vet_diag = (double *) malloc(sizeof(double) * N);
 
     // Define a semente para geracao de numeros aleatorios
     srand(seed);
 
     // Inicializa a matriz A e o vetor B com valores aleatorios
     for(int i = 0; i< N; i++){
-        // Gera umal linha da matriz A
+        // Gera uma linha da matriz A
         for(int j = 0; j< N; j++){
             matrix[i*N + j] = rand()%MAX_MATRIX_VALUE;
         }
 
         // Soma a linha atual da matriz A
-        float soma_linha = 0;
+        double soma_linha = 0;
         for(int j = 0; j< N; j++){
             soma_linha += fabs(matrix[i*N + j]);
         }
@@ -122,23 +126,25 @@ int main(int argc,char **argv){
     
     wtime = omp_get_wtime();
 
+    int i, j = 0;
+
     // Normaliza a matriz A e o vetor B e armazena a diagonal original da matriz A
-    #pragma omp parallel num_threads(T) shared(matrix, vet_b, vet_diag, N)
+    #pragma omp parallel num_threads(T) shared(matrix, vet_b, vet_diag, N) private (i, j)
     {
         #pragma omp single
         {
-            for(int i = 0; i< N; i++){
+            for(i = 0; i< N; i++){
                 #pragma omp task depend(in: matrix[i*N + i])
                 {
                     vet_b[i] = vet_b[i] / matrix[i*N +i];
                     vet_diag[i] = matrix[i*N + i];
                 } 
                 #pragma omp task depend(out: matrix[i*N + i])
-                for(int j = 0; j< i; j++){
+                for(j = 0; j< i; j++){
                     matrix[i*N + j] = matrix[i*N + j] / matrix[i*N + i]; // normaliza cada linha em relacao ao elemento da diagonal
                 }
                 #pragma omp task depend(out: matrix[i*N + i])
-                for(int j = i+1; j< N; j++){
+                for(j = i+1; j< N; j++){
                     matrix[i*N + j] = matrix[i*N + j] / matrix[i*N + i]; // normaliza cada linha em relacao ao elemento da diagonal
                 }
                 #pragma omp taskwait
@@ -162,11 +168,11 @@ int main(int argc,char **argv){
     }
 
     // Alocacao de memoria para o vetor solucao X, para o novo vetor X
-    float * vet_x = (float *) malloc(sizeof(float) * N);
-    float * vet_new_x = (float *) malloc(sizeof(float) * N);
+    double * vet_x = (double *) malloc(sizeof(double) * N);
+    double * vet_new_x = (double *) malloc(sizeof(double) * N);
 
-    float error = 1; // erro inicial
-    float * diff = (float *) malloc(sizeof(float) * N); // vetor para armazenar a diferenca entre o vetor X e o novo vetor X
+    double error = 1; // erro inicial
+    double * diff = (double *) malloc(sizeof(double) * N); // vetor para armazenar a diferenca entre o vetor X e o novo vetor X
     int flag_cancel = 0; // flag para cancelar o loop 
 
     // Inicializacao dos vetores X e novo X
@@ -222,7 +228,7 @@ int main(int argc,char **argv){
 
     // Fim do calculo do tempo de execucao
     wtime = omp_get_wtime() - wtime;
-    printf("Elapsed wall clock time = %f  \n", wtime);
+    printf("Elapsed wall clock time = %f ms \n", wtime*1000);
 
     // Imprime o vetor solucao X
     if(debug == 1){
@@ -235,7 +241,7 @@ int main(int argc,char **argv){
     printf("\nDigite o indice da equacao que deseja substituir: ");
     int linha;
     scanf("%d", &linha);
-    float result = 0;
+    double result = 0;
     if (linha >=0 && linha < N)
     {
         for(int i = 0; i< N; i++){

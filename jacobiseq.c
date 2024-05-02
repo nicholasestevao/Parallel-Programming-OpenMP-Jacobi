@@ -9,6 +9,7 @@
 
 #define MAX_ITERACOES 300
 #define MAX_MATRIX_VALUE 100
+#define PRECISAO_JACOBI 0.0001
 
 int main(int argc,char **argv){
 
@@ -26,24 +27,24 @@ int main(int argc,char **argv){
     int debug = atoi(argv[3]);
 
     // Alocacao de memoria para matriz A e vetor B
-    float * matrix = (float *) malloc(sizeof(float *) * N * N); // matriz linearizada
-    float * vet_b = (float *) malloc(sizeof(float) * N);
+    double * matrix = (double *) malloc(sizeof(double *) * N * N); // matriz linearizada
+    double * vet_b = (double *) malloc(sizeof(double) * N);
 
     // Vetor que armazena a diagonal original da matriz A para posterior substituicao na equacao
-    float * vet_diag = (float *) malloc(sizeof(float) * N);
+    double * vet_diag = (double *) malloc(sizeof(double) * N);
 
     // Define a semente para geracao de numeros aleatorios
     srand(seed);
 
     // Inicializa a matriz A e o vetor B com valores aleatorios
     for(int i = 0; i< N; i++){
-        // Gera umal linha da matriz A
+        // Gera uma linha da matriz A
         for(int j = 0; j< N; j++){
             matrix[i*N + j] = rand()%MAX_MATRIX_VALUE;
         }
 
         // Soma a linha atual da matriz A
-        float soma_linha = 0;
+        double soma_linha = 0;
         for(int j = 0; j< N; j++){
             soma_linha += fabs(matrix[i*N + j]);
         }
@@ -115,14 +116,14 @@ int main(int argc,char **argv){
     }
 
     // Alocacao de memoria para o vetor solucao X, para o novo vetor X
-    float * vet_x = (float *) malloc(sizeof(float) * N);
-    float * vet_new_x = (float *) malloc(sizeof(float) * N);
+    double * vet_x = (double *) malloc(sizeof(double) * N);
+    double * vet_new_x = (double *) malloc(sizeof(double) * N);
 
     // Alocacao de memoria para as variaveis de calculo do erro (criterio de parada)
-    float * diff = (float *) malloc(sizeof(float) * N);
-    float max_new_x = fabs(vet_new_x[0]);
-    float max_diff = 0;
-    float error = 1; // erro inicial para entrar no loop while
+    double * diff = (double *) malloc(sizeof(double) * N);
+    double max_new_x = fabs(vet_new_x[0]);
+    double max_diff = 0;
+    double error = 1; // erro inicial para entrar no loop while
 
     // Inicializacao dos vetores X e novo X
     for(int i = 0; i< N; i++){
@@ -132,7 +133,7 @@ int main(int argc,char **argv){
 
     int cont = 0; // contador de iteracoes --- DEBUG
 
-    while(error > 0.001 /*&& cont < MAX_ITERACOES*/){ // loop para realizar iteracoes ate satisfazer o criterio de parada
+    while(error > PRECISAO_JACOBI /*&& cont < MAX_ITERACOES*/){ // loop para realizar iteracoes ate satisfazer o criterio de parada
         // Inicio da iteracao
         //printf("\nIteracao %d\n", cont);
 
@@ -190,7 +191,7 @@ int main(int argc,char **argv){
             printf("\nError: %f\n", error);            
         }
 
-        if(error < 0.001){ // sai do loop while quando satisfaz o erro minimo
+        if(error < PRECISAO_JACOBI){ // sai do loop while quando satisfaz o erro minimo
             break;
         }
 
@@ -199,7 +200,7 @@ int main(int argc,char **argv){
 
     // Fim do calculo do tempo de execucao
     wtime = omp_get_wtime() - wtime;
-    printf("Elapsed wall clock time = %f  \n", wtime);
+    printf("Elapsed wall clock time = %f ms \n", wtime*1000);
 
     // Imprime o vetor solucao X
     if(debug == 1){
@@ -212,7 +213,7 @@ int main(int argc,char **argv){
     printf("\nDigite o indice da equacao que deseja substituir: ");
     int linha;
     scanf("%d", &linha);
-    float result = 0;
+    double result = 0;
     if (linha >=0 && linha < N)
     {
         for(int i = 0; i< N; i++){
