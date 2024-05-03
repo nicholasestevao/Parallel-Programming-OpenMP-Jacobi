@@ -16,11 +16,11 @@ endif
 
 all: seq par
 
-seq: jacobiseq.c
-	$(CC) $(CFLAGS) jacobiseq.c -o jacobiseq$(OUT_EXT)
+seq: jacobi_sequencial.c
+	$(CC) $(CFLAGS) jacobi_sequencial.c -o jacobi_sequencial$(OUT_EXT)
 
-par: jacobipar.c
-	$(CC) $(CFLAGS) jacobipar.c -o jacobipar$(OUT_EXT)
+par: jacobi_paralelo.c
+	$(CC) $(CFLAGS) jacobi_paralelo.c -o jacobi_paralelo$(OUT_EXT)
 
 clean:
 	rm -rf *.out *.exe
