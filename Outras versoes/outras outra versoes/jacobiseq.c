@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <omp.h>
 #include <math.h>
+#include <time.h>
 
 #define MAX_ITERACOES 300
 #define MAX_MATRIX_VALUE 100
@@ -14,6 +15,11 @@
 int main(int argc,char **argv){
 
     double wtime;
+    double cpu_time_used;
+    clock_t start, end;
+
+    // Record the starting time
+    start = clock();
     
     // Argumentos de entrada
     if ( argc  != 4)
@@ -200,7 +206,7 @@ int main(int argc,char **argv){
 
     // Fim do calculo do tempo de execucao
     wtime = omp_get_wtime() - wtime;
-    printf("Elapsed wall clock time = %f ms \n", wtime*1000);
+    printf("User time = %f ms \n", wtime*1000);
 
     // Imprime o vetor solucao X
     if(debug == 1){
@@ -211,8 +217,9 @@ int main(int argc,char **argv){
     }
 
     printf("\nDigite o indice da equacao que deseja substituir: ");
-    int linha;
-    scanf("%d", &linha);
+    int linha = 0;
+    //scanf("%d", &linha);
+    printf("\n");
     double result = 0;
     if (linha >=0 && linha < N)
     {
@@ -235,7 +242,13 @@ int main(int argc,char **argv){
         printf("Erro: %.6f\n", error);
     }
     
+    // Record the ending time
+    end = clock();
 
+    // Calculate the CPU time used
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    // Output the CPU time and real time
+    printf("CPU time: %f seconds\n", cpu_time_used);
     // Desalocacao de Memoria
     free(matrix);
     free(vet_b);
