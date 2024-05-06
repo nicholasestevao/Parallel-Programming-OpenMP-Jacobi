@@ -8,10 +8,10 @@
 
 #define MAX_ITERACOES 50000
 #define MAX_MATRIX_VALUE 100
-#define PRECISAO_JACOBI 0.0001
+#define PRECISAO_JACOBI 0.001
 
 // Inicializa a matriz A e o vetor B com valores aleatorios
-void init_matrix(double *matrix, double *vet_b, double *vet_diag, int N)
+void init_matrix(double *matrix, double *vet_b, int N)
 {
     for (int i = 0; i < N; i++)
     {
@@ -77,11 +77,16 @@ void calculate_new_x(double *matrix, double *vet_b, double *vet_x, double *vet_n
 }
 
 // Calculo do erro (criterio de parada)
-void calculate_error(double *vet_x, double *vet_new_x, double *diff, double *error, int N)
+void calculate_error(double *vet_x, double *vet_new_x, double *error, int N)
 {
     double max_diff = 0;
     double max_new_x = fabs(vet_new_x[0]);
-
+    double *diff = (double *)malloc(sizeof(double) * N);
+    if (diff == NULL)
+    {
+        printf("Erro de alocação de memória\n");
+        exit(1);
+    }
     for (int i = 0; i < N; i++)
     {
         diff[i] = fabs(vet_new_x[i] - vet_x[i]); // calcula diferenca entre o novo vetor X e o vetor X
@@ -97,6 +102,7 @@ void calculate_error(double *vet_x, double *vet_new_x, double *diff, double *err
     }
 
     *error = max_diff / max_new_x;
+    free(diff);
 }
 
 int main(int argc, char **argv)
@@ -124,14 +130,13 @@ int main(int argc, char **argv)
     // Define a semente para geracao de numeros aleatorios
     srand(seed);
 
-    init_matrix(matrix, vet_b, vet_diag, N);
+    init_matrix(matrix, vet_b, N);
 
     normalize_matrix(matrix, vet_b, vet_diag, N);
 
     double *vet_x = (double *)malloc(sizeof(double) * N);
     double *vet_new_x = (double *)malloc(sizeof(double) * N);
-    double *diff = (double *)malloc(sizeof(double) * N);
-    if (vet_x == NULL || vet_new_x == NULL || diff == NULL)
+    if (vet_x == NULL || vet_new_x == NULL)
     {
         printf("Erro de alocação de memória\n");
         exit(1);
@@ -152,28 +157,33 @@ int main(int argc, char **argv)
     {
         // Calculo do novo vetor X  -> x[i]k+1 = B*[i] - (A*[i j].x[j]k), para i <> j e 0 >= j < n
         calculate_new_x(matrix, vet_b, vet_x, vet_new_x, N);
-        calculate_error(vet_x, vet_new_x, diff, &error, N);
+        calculate_error(vet_x, vet_new_x, &error, N);
         cont++;
     }
-    /*
-    //printf("\nDigite o indice da equacao que deseja substituir: ");
+
+    /*// printf("\nDigite o indice da equacao que deseja substituir: ");
     int linha = 0;
-    //scanf("%d", &linha);
+    // scanf("%d", &linha);
     double result = 0;
-    if (linha >= 0 && linha < N) {
-        for(int i = 0; i < N; i++) {
+    if (linha >= 0 && linha < N)
+    {
+        for (int i = 0; i < N; i++)
+        {
             // Reconstroi a linha original da matriz A (sem normalizacao)
-            if(i != linha){
-                matrix[linha*N + i] *= vet_diag[linha];
-            } else {
-                matrix[linha*N + i] = vet_diag[linha];
+            if (i != linha)
+            {
+                matrix[linha * N + i] *= vet_diag[linha];
+            }
+            else
+            {
+                matrix[linha * N + i] = vet_diag[linha];
             }
             // Avalia equacao com o valor do vetor X
-            result += matrix[linha*N +i] * vet_x[i];
+            result += matrix[linha * N + i] * vet_x[i];
         }
 
         printf("Resultado da atribuicao na linha %d (%d iteracoes): %.6f\n", linha, cont, result);
-        printf("Valor esperado: %f\n", vet_b[linha]*vet_diag[linha]);
+        printf("Valor esperado: %f\n", vet_b[linha] * vet_diag[linha]);
         printf("Erro: %.6f\n", error);
     }*/
 
@@ -182,7 +192,6 @@ int main(int argc, char **argv)
     free(vet_diag);
     free(vet_x);
     free(vet_new_x);
-    free(diff);
 
     return 0;
 }
