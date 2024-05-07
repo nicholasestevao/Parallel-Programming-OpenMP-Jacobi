@@ -17,6 +17,7 @@
 
 # Arquivos de saída	
 *.txt
+*.csv
 
 # Arquivos temporários
 *.tmp
