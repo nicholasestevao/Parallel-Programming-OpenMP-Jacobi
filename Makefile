@@ -29,6 +29,6 @@ run: teste
 	./teste$(OUT_EXT)
 
 clean:
-	rm -rf *.out *.exe
+	rm -rf *.out *.exe *.txt
 
 .PHONY: clean
