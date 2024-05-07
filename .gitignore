@@ -15,6 +15,10 @@
 # Arquivos de log
 *.log
 
+# Arquivos de saída	
+*.txt
+*.csv
+
 # Arquivos temporários
 *.tmp
 
