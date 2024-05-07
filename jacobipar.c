@@ -7,7 +7,7 @@
 #include <math.h>
 
 #define MAX_ITERACOES 50000
-#define MAX_MATRIX_VALUE 100
+#define MAX_MATRIX_VALUE 1000
 #define PRECISAO_JACOBI 0.001
 
 // Inicializa a matriz A e o vetor B com valores aleatorios
@@ -18,7 +18,7 @@ void init_matrix(double *matrix, double *vet_b, int N)
         // Gera uma linha da matriz A
         for (int j = 0; j < N; j++)
         {
-            matrix[i * N + j] = rand() % MAX_MATRIX_VALUE;
+            matrix[i * N + j] = rand() % MAX_MATRIX_VALUE - rand() % MAX_MATRIX_VALUE;
         }
 
         // Soma a linha atual da matriz A
@@ -29,8 +29,8 @@ void init_matrix(double *matrix, double *vet_b, int N)
         }
         // Verifica se a matriz eh diagonalmente dominante
         if (fabs(matrix[i * N + i]) < soma_linha - fabs(matrix[i * N + i]))
-        {                                       // Diagonal deve ser maior que a soma dos outros elementos da linha
-            matrix[i * N + i] = soma_linha + 1; // corrige a diagonal para ser maior que a soma dos outros elementos da linha
+        {                                       // Diagonal deve ser maior que a soma do modulo dos outros elementos da linha
+            matrix[i * N + i] = soma_linha + 1; // corrige a diagonal para ser maior que a soma do modulo dos outros elementos da linha
         }
 
         // Gera elemento do vetor B
@@ -186,7 +186,7 @@ int main(int argc, char **argv)
     }
 
     // printf("\nDigite o indice da equacao que deseja substituir: ");
-    /*int linha = 0;
+    int linha = 0;
     // scanf("%d", &linha);
     double result = 0;
     if (linha >= 0 && linha < N)
@@ -210,7 +210,7 @@ int main(int argc, char **argv)
         printf("Resultado da atribuicao na linha %d (%d iteracoes): %.6f\n", linha, cont, result);
         printf("Valor esperado: %f\n", vet_b[linha] * vet_diag[linha]);
         printf("Erro: %.6f\n", error);
-    }*/
+    }
 
     free(matrix);
     free(vet_b);
