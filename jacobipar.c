@@ -15,16 +15,14 @@ void init_matrix(double *matrix, double *vet_b, int N)
 {
     for (int i = 0; i < N; i++)
     {
-        // Gera uma linha da matriz A
-        for (int j = 0; j < N; j++)
-        {
-            matrix[i * N + j] = rand() % MAX_MATRIX_VALUE - rand() % MAX_MATRIX_VALUE;
-        }
 
         // Soma a linha atual da matriz A
         double soma_linha = 0;
+
+        // Gera uma linha da matriz A
         for (int j = 0; j < N; j++)
         {
+            matrix[i * N + j] = rand() % MAX_MATRIX_VALUE;
             soma_linha += fabs(matrix[i * N + j]);
         }
         // Verifica se a matriz eh diagonalmente dominante
@@ -78,14 +76,16 @@ void calculate_new_x(double *matrix, double *vet_b, double *vet_x, double *vet_n
 {
     int i, j = 0;
 // Atualiza o vetor X para a proxima iteracao
-#pragma omp parallel for simd num_threads(T) shared(vet_new_x, matrix, vet_x, vet_b, N) private(i)
+#pragma omp parallel num_threads(T) shared(vet_new_x, matrix, vet_x, vet_b, N)
+{
+#pragma omp for simd private(i)
     for (i = 0; i < N; i++)
     {
         vet_x[i] = vet_new_x[i]; // vetor X recebe o novo vetor X (proximo chute)
         vet_new_x[i] = vet_b[i]; // vetor novo X sempre comeca com B
     }
 
-#pragma omp parallel for simd num_threads(T) private(i, j) reduction(+ : vet_new_x[ : N])
+#pragma omp for simd private(i, j) reduction(+ : vet_new_x[ : N])
     for (i = 0; i < N; i++)
     {
         for (j = 0; j < N; j++)
@@ -93,6 +93,7 @@ void calculate_new_x(double *matrix, double *vet_b, double *vet_x, double *vet_n
             vet_new_x[i] -= matrix[i * N + j] * vet_x[j];
         }
     }
+}
 }
 
 // Calculo do erro (criterio de parada)
@@ -129,9 +130,9 @@ void calculate_error(double *vet_x, double *vet_new_x, double *error, int N, int
 int main(int argc, char **argv)
 {
     // Argumentos de entrada
-    if (argc != 4)
+    if (argc != 5)
     {
-        printf("Wrong arguments. Please use main <ordem_matriz> <seed> <num_threads>\n");
+        printf("Wrong arguments. Please use main <ordem_matriz> <seed> <num_threads> <line_for_verification>\n");
         exit(0);
     }
 
@@ -185,9 +186,7 @@ int main(int argc, char **argv)
         cont++;
     }
 
-    // printf("\nDigite o indice da equacao que deseja substituir: ");
-    int linha = 0;
-    // scanf("%d", &linha);
+    int linha = atoi(argv[4]);
     double result = 0;
     if (linha >= 0 && linha < N)
     {
@@ -206,9 +205,8 @@ int main(int argc, char **argv)
             // Avalia equacao com o valor do vetor X
             result += matrix[linha * N + i] * vet_x[i];
         }
-
-        printf("Resultado da atribuicao na linha %d (%d iteracoes): %.6f\n", linha, cont, result);
         printf("Valor esperado: %f\n", vet_b[linha] * vet_diag[linha]);
+        printf("Resultado da atribuicao na linha %d (%d iteracoes): %.6f\n", linha, cont, result);
         printf("Erro: %.6f\n", error);
     }
 
