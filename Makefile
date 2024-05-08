@@ -14,7 +14,7 @@ else
 	OUT_EXT := .out
 endif
 
-all: seq par
+all: seq par teste
 
 seq: jacobiseq.c
 	$(CC) $(CFLAGS) jacobiseq.c -o jacobiseq$(OUT_EXT)

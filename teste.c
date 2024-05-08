@@ -107,7 +107,7 @@ void txtToCSV(char *nome_txt, char *nome_csv)
     sprintf(comando, "rm %s", nome_txt);
     if (system(comando) == -1)
     {
-        printf("Erro ao tentar remover os arquivos txt.\n");
+        printf("Erro ao tentar remover %s.\n", nome_txt);
     }
 
     return;
