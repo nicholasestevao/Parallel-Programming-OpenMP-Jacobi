@@ -25,3 +25,8 @@
 # Diretórios gerados
 build/
 bin/
+
+# Binarios sem extensão
+./jacobiseq
+./jacobipar
+./teste

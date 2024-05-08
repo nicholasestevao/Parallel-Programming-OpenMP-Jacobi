@@ -29,3 +29,7 @@ $ ./jacobiseq <matrix_order> <seed> <option_debug>
 $ ./jacobiseq <matrix_order> <num_threads> <seed> <option_debug>
 ```
 
+### teste:
+``` bash
+$ ./teste
+```
