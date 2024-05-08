@@ -186,7 +186,7 @@ int main(int argc, char **argv)
         cont++;
     }
 
-    int linha = atoi(argv[3]);
+    int linha = atoi(argv[4]);
     double result = 0;
     if (linha >= 0 && linha < N)
     {
