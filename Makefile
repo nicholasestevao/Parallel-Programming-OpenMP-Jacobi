@@ -9,7 +9,7 @@ DBFLAGS := -Wall -g3
 CFLAGS := -fopenmp -march=native -O3 $(DBFLAGS)
 
 ifeq ($(OS),Windows_NT)
-	OUT_EXT :=
+	OUT_EXT := .exe
 else
 	OUT_EXT := .out
 endif
@@ -25,7 +25,7 @@ par: jacobipar.c
 teste: seq par teste.c
 	$(CC) $(CFLAGS) teste.c -o teste$(OUT_EXT)
 
-run: teste
+run: ./teste$(OUT_EXT) ./jacobiseq$(OUT_EXT) ./jacobipar$(OUT_EXT)
 	./teste$(OUT_EXT)
 
 clean:
