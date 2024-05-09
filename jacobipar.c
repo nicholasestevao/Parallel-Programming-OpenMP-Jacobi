@@ -1,5 +1,5 @@
 // to compile: make par || make all
-// to execute: ./jacobipar <ordem_matriz> <seed> <threads>
+// to execute: ./jacobipar <ordem_matriz> <seed> <threads> <line_for_verification>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -139,6 +139,7 @@ int main(int argc, char **argv)
     int N = atoi(argv[1]);
     int seed = atoi(argv[2]);
     int T = atoi(argv[3]);
+    int linha = atoi(argv[4]);
 
     // Alocacao de memoria para matriz A e vetor B
     double *matrix = (double *)malloc(sizeof(double *) * N * N);
@@ -186,7 +187,6 @@ int main(int argc, char **argv)
         cont++;
     }
 
-    int linha = atoi(argv[4]);
     double result = 0;
     if (linha >= 0 && linha < N)
     {
@@ -205,9 +205,9 @@ int main(int argc, char **argv)
             // Avalia equacao com o valor do vetor X
             result += matrix[linha * N + i] * vet_x[i];
         }
-        printf("Valor esperado: %f\n", vet_b[linha] * vet_diag[linha]);
-        printf("Resultado da atribuicao na linha %d (%d iteracoes): %.6f\n", linha, cont, result);
-        printf("Erro: %.6f\n", error);
+        // printf("Valor esperado: %f\n", vet_b[linha] * vet_diag[linha]);
+        // printf("Resultado da atribuicao na linha %d (%d iteracoes): %.6f\n", linha, cont, result);
+        // printf("Erro: %.6f\n", error);
     }
 
     free(matrix);

@@ -3,20 +3,25 @@
 #include <omp.h>
 #include <time.h>
 
-#define TIME_OF_EXECUTION 5
-#define ORDEM_MATRIZ 5000
+#define TIME_OF_EXECUTION 30
+#define ORDEM_MATRIZ 1500
+#define LINE_FOR_VERIFICATION 0
 
 void txtToCSV(char *nome_txt, char *nome_csv);
 
 int main()
 {
-    char comando[100];
+    char *comando = (char*) malloc(100 * sizeof(char));
+    char *nome_txt = (char*) malloc(50 * sizeof(char));
+    char *nome_csv = (char*) malloc(50 * sizeof(char));
     int retorno = 0;
 
+    sprintf(nome_txt, "testeSeq_%d.txt", ORDEM_MATRIZ);
+    sprintf(nome_csv, "testeSeq_%d.csv", ORDEM_MATRIZ);
     // Teste Sequencial
     for (int i = 0; i < TIME_OF_EXECUTION; i++)
     {
-        sprintf(comando, "time -p -o testeSeq.txt -a ./jacobiseq.out %d %d", ORDEM_MATRIZ, (int)clock());
+        sprintf(comando, "time -p -o %s -a ./jacobiseq.out %d %d %d", nome_txt, ORDEM_MATRIZ, (int)clock(), LINE_FOR_VERIFICATION);
         retorno = system(comando);
 
         if (retorno == -1)
@@ -24,25 +29,27 @@ int main()
             printf("Ocorreu um erro ao tentar executar o comando.\n");
         }
     }
+    // transforma em csv
+    txtToCSV(nome_txt, nome_csv);
 
     // Teste Paralelo
     int max_threads = omp_get_max_threads(); // roda com o número máximmo de theads lógicas disponíveis
-    for (int i = 0; i < TIME_OF_EXECUTION; i++)
-    {
-        sprintf(comando, "time -p -o testePar.txt -a ./jacobipar.out %d %d %d", ORDEM_MATRIZ, (int)clock(), max_threads);
+    for (int j = 2; j <= max_threads; j+=2) {
+        sprintf(nome_txt, "testePar_%d_threads%d.txt", ORDEM_MATRIZ, j);
+        sprintf(nome_csv, "testePar_%d_threads%d.csv", ORDEM_MATRIZ, j);
+        for (int i = 0; i < TIME_OF_EXECUTION; i++) {
+            sprintf(comando, "time -p -o %s -a ./jacobipar.out %d %d %d %d", nome_txt, ORDEM_MATRIZ, (int)clock(), j, LINE_FOR_VERIFICATION);
 
-        retorno = system(comando);
+            retorno = system(comando);
 
-        if (retorno == -1)
-        {
-            printf("Ocorreu um erro ao tentar executar o comando.\n");
+            if (retorno == -1)
+            {
+                printf("Ocorreu um erro ao tentar executar o comando.\n");
+            }
         }
+        // transforma em csv
+        txtToCSV(nome_txt, nome_csv);
     }
-
-    // transforma em csv
-    txtToCSV("testeSeq.txt", "testeSeq.csv");
-    txtToCSV("testePar.txt", "testePar.csv");
-
     return 0;
 }
 

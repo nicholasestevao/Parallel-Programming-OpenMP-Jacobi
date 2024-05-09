@@ -1,5 +1,5 @@
 // to compile: make seq || make all
-// to execute: ./jacobiseq.out <ordem_matriz> <seed>
+// to execute: ./jacobiseq.out <ordem_matriz> <seed> <line_for_verification>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -112,6 +112,7 @@ int main(int argc, char **argv)
 
     int N = atoi(argv[1]);
     int seed = atoi(argv[2]);
+    int linha = atoi(argv[3]);
 
     // Alocacao de memoria para matriz A e vetor B
     double *matrix = (double *)malloc(sizeof(double *) * N * N); // matriz linearizada
@@ -157,7 +158,6 @@ int main(int argc, char **argv)
         cont++;
     }
 
-    int linha = atoi(argv[3]);
     double result = 0;
     if (linha >= 0 && linha < N)
     {
@@ -176,9 +176,9 @@ int main(int argc, char **argv)
             result += matrix[linha * N + i] * vet_x[i];
         }
         
-        printf("Valor esperado: %f\n", vet_b[linha] * vet_diag[linha]);
-        printf("Resultado da atribuicao na linha %d (%d iteracoes): %.6f\n", linha, cont, result);
-        printf("Erro: %.6f\n", error);
+        // printf("Valor esperado: %f\n", vet_b[linha] * vet_diag[linha]);
+        // printf("Resultado da atribuicao na linha %d (%d iteracoes): %.6f\n", linha, cont, result);
+        // printf("Erro: %.6f\n", error);
     }
 
     free(matrix);
