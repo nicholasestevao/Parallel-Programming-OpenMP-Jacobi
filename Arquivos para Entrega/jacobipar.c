@@ -211,9 +211,9 @@ int main(int argc, char **argv)
             // Avalia equacao com o valor do vetor X
             result += matrix[linha * N + i] * vet_x[i];
         }
-        // printf("Valor esperado: %f\n", vet_b[linha] * vet_diag[linha]);
-        // printf("Resultado da atribuicao na linha %d (%d iteracoes): %.6f\n", linha, cont, result);
-        // printf("Erro: %.6f\n", error);
+        printf("Valor esperado: %f\n", vet_b[linha] * vet_diag[linha]);
+        printf("Resultado da atribuicao na linha %d (%d iteracoes): %.6f\n", linha, cont, result);
+        printf("Erro: %.6f\n", error);
     }
 
     free(matrix);
