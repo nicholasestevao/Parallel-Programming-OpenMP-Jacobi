@@ -23,10 +23,10 @@ par: jacobipar.c
 	$(CC) $(CFLAGS) jacobipar.c -o jacobipar$(OUT_EXT)
 
 runSeq: ./jacobiseq$(OUT_EXT)
-	./jacobiseq$(OUT_EXT) $(ARGS)
+	time ./jacobiseq$(OUT_EXT) $(ARGS)
 
 runPar: ./jacobipar$(OUT_EXT)
-	./jacobipar$(OUT_EXT) $(ARGS)
+	time ./jacobipar$(OUT_EXT) $(ARGS)
 
 clean:
 	rm -rf *.out *.exe *.txt
